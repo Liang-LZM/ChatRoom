@@ -1,0 +1,57 @@
+# Windows 系统文件
+Thumbs.db
+ehthumbs.db
+
+# 编译输出目录
+bin/
+obj/
+
+# Rider 或 Visual Studio 的用户配置文件
+.vs/
+.vscode/
+.idea/
+
+# Windows Installer 文件
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows 调试文件
+*.pdb
+*.iobj
+*.ipdb
+
+# WPF 特有的生成文件
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet 包缓存
+.nuget/
+packages/
+
+# ASP.NET 临时文件
+App_Data/
+App_Browsers/
+App_Code/
+App_GlobalResources/
+App_WebReferences/
+App_LocalResources/
+
+# Visual Studio for Mac 临时文件
+.vscode/
+
+# ReSharper 文件
+.idea/
+
+# 用户配置文件
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.user
+*.suo
