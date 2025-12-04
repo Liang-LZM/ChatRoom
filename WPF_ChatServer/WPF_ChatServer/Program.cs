@@ -24,6 +24,7 @@ namespace WPF_ChatServer
             listener.Listen(10);
             Console.WriteLine("服务器已启动，等待连接...");
             ConnectManager connect = ConnectManager.Instance;
+            MessageManager messageManager = MessageManager.Instance;
             #endregion
 
 
@@ -38,11 +39,14 @@ namespace WPF_ChatServer
 
                 #region 信息交流部分
                 // 接收客户端数据
-                byte[] buffer = new byte[1024];
-                //int bytesReceived = clientSocket.Receive(buffer);
-                int bytesReceived = connect.GetClientById(i).Socket.Receive(buffer);
-                string data = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
-                Console.WriteLine("收到数据: " + data);
+                //byte[] buffer = new byte[1024];
+                ////int bytesReceived = clientSocket.Receive(buffer);
+                //int bytesReceived = connect.GetClientById(i).Socket.Receive(buffer);
+                //string data = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
+
+                //Console.WriteLine("收到数据: " + data);
+
+                messageManager.ReceiveMsg();
 
 
                 // 向客户端发送回应
