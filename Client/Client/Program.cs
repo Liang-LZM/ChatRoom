@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Client
 {
@@ -24,19 +25,54 @@ namespace Client
             clientSocket.Connect(endPoint);
             Console.WriteLine("已连接到服务器.");
 
-            // 发送数据
-            string message = "Hello from client!";
-            clientSocket.Send(Encoding.UTF8.GetBytes(message));
+            MessageManager messageManager = new MessageManager(clientSocket);
 
-            // 接收服务器回应
-            byte[] buffer = new byte[1024];
-            int bytesReceived = clientSocket.Receive(buffer);
-            string response = Encoding.UTF8.GetString(buffer, 0, bytesReceived);
-            Console.WriteLine("收到服务器回应: " + response);
+            while (true)
+            {
 
-            // 关闭连接
-            clientSocket.Close();
-            Console.ReadLine();
+            }
+        }
+    }
+
+    class MessageManager
+    {
+
+
+        private Socket _socket;
+        public MessageManager(Socket socket)
+        {
+            _socket = socket;
+            Thread recThread = new Thread(() => ReceiveMsg());
+            recThread.IsBackground = true;
+            recThread.Start();
+
+            Thread SendThread = new Thread(() => SendMsg());
+            SendThread.IsBackground = true;
+            SendThread.Start();
+        }
+
+        public void SendMsg()
+        {
+            while (true)
+            {
+                string read = Console.ReadLine();
+                _socket.Send(Encoding.UTF8.GetBytes(read));
+            }
+        }
+
+        public void ReceiveMsg()
+        {
+            while (true)
+            {
+                byte[] buffer = new byte[1024];
+                int bytesRead = _socket.Receive(buffer);
+                string rec = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                if (bytesRead != 0)
+                {
+                    Console.WriteLine(rec);
+                }
+            }
+
         }
     }
 }

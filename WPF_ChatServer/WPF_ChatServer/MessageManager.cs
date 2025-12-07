@@ -20,7 +20,7 @@ namespace WPF_ChatServer
 
         Queue<string> _message = new Queue<string>();
 
-        private List<Client> _clientScoket = new List<Client>();
+        private List<Client> _client = new List<Client>();
 
         public static MessageManager Instance => _instance.Value;
 
@@ -50,7 +50,14 @@ namespace WPF_ChatServer
                 if (_message.Count > 0)
                 {
                     Console.WriteLine("Dealing message");
-                    _message.Dequeue();
+                    string mes = _message.Dequeue();
+                    foreach (Client client in _client)
+                    {
+                        if (client != null)
+                        {
+                            client.Socket.Send(Encoding.UTF8.GetBytes(mes));
+                        }
+                    }
                 }
             }
         }
@@ -59,18 +66,20 @@ namespace WPF_ChatServer
         {
             while (true)
             {
-                if (_clientScoket.Count > 0)
+                if (_client.Count > 0)
                 {
-                    foreach (var client in _clientScoket)
+                    foreach (var client in _client)
                     {
                         try
                         {
                             byte[] buffer = new byte[1024];
                             int bytesReceive = client.Socket.Receive(buffer);
                             string mes = Encoding.UTF8.GetString(buffer, 0, bytesReceive);
-                            Console.WriteLine(mes);
-                            _message.Enqueue(mes);
-
+                            if (bytesReceive != 0)
+                            {
+                                Console.WriteLine(mes);
+                                _message.Enqueue(mes);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -84,18 +93,18 @@ namespace WPF_ChatServer
 
         public void AddConnection(Client client)
         {
-            if (!_clientScoket.Contains(client))
+            if (!_client.Contains(client))
             {
-                _clientScoket.Add(client);
+                _client.Add(client);
                 Console.WriteLine(client.IpAddress + "Connect");
             }
         }
 
         public void RemoveConnection(Client client)
         {
-            if (_clientScoket.Contains(client))
+            if (_client.Contains(client))
             {
-                _clientScoket.Remove(client);
+                _client.Remove(client);
                 Console.WriteLine(client.IpAddress + client.ConnectTime + "Disconnect");
             }
         }
@@ -103,12 +112,12 @@ namespace WPF_ChatServer
         public Client GetClientById(int id)
         {
 
-            return _clientScoket.FirstOrDefault(c => c.Id == id);
+            return _client.FirstOrDefault(c => c.Id == id);
         }
 
         public List<Client> GetAllClient()
         {
-            return _clientScoket;
+            return _client;
         }
 
         public void ChangeAuthenticated(Client client, bool TF)
