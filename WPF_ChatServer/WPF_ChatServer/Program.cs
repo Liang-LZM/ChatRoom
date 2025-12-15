@@ -31,6 +31,7 @@ namespace WPF_ChatServer
                 Socket ClientSocket = await listener.AcceptAsync();
                 messageManager.AddConnection(new Client(ClientSocket));
                 Console.WriteLine("客户端已连接.");
+                await Task.Delay(100);
             }
             listener.Close();
             Console.ReadLine();

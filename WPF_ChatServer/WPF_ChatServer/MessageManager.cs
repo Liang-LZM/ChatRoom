@@ -29,11 +29,7 @@ namespace WPF_ChatServer
         {
             try
             {
-
                 Task.Run(() => DealMsg());
-
-
-                Task.Run(() => ReceiveMsg());
             }
             catch (Exception ex)
             {
@@ -69,45 +65,40 @@ namespace WPF_ChatServer
                     }
 
                 }
-                await Task.Delay(100);
+                await Task.Delay(1000);
             }
         }
 
-        public async void ReceiveMsg()
+        private void StartReceiveMsg(Client client)
+        {
+            Task.Run(() => ReceiveMsgForClient(client));
+        }
+
+        public void ReceiveMsgForClient(Client client)
         {
             while (true)
             {
-                if (_client.Count > 0)
+                try
                 {
-                    List<Client> clientCopy;
-                    lock (_client)
+                    byte[] buffer = new byte[1024];
+                    int bytesReceive = client.Socket.Receive(buffer);
+                    string mes = Encoding.UTF8.GetString(buffer, 0, bytesReceive);
+                    if (bytesReceive != 0)
                     {
-                        clientCopy = new List<Client>(_client);
-                    }
-
-                    foreach (var client in clientCopy)
-                    {
-                        try
-                        {
-                            byte[] buffer = new byte[1024];
-                            int bytesReceive = client.Socket.Receive(buffer);
-                            string mes = Encoding.UTF8.GetString(buffer, 0, bytesReceive);
-                            if (bytesReceive != 0)
-                            {
-                                Console.WriteLine(mes);
-                                _message.Enqueue(mes);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine(ex.ToString());
-                            RemoveConnection(client);
-                        }
+                        Console.WriteLine(mes);
+                        _message.Enqueue(mes);
                     }
                 }
-                await Task.Delay(10);
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    RemoveConnection(client);
+                    break;
+
+                }
             }
         }
+
 
         public void AddConnection(Client client)
         {
@@ -117,6 +108,7 @@ namespace WPF_ChatServer
                 {
                     _client.Add(client);
                     Console.WriteLine(client.IpAddress + "Connect");
+                    StartReceiveMsg(client);
                 }
             }
         }
