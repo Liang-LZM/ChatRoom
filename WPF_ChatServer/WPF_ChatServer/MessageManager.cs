@@ -25,6 +25,8 @@ namespace WPF_ChatServer
 
         public static MessageManager Instance => _instance.Value;
 
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(10, 10); // 限制最多10个并发任务
+
         private MessageManager()
         {
             try
@@ -74,12 +76,15 @@ namespace WPF_ChatServer
             Task.Run(() => ReceiveMsgForClient(client));
         }
 
-        public void ReceiveMsgForClient(Client client)
+        public async Task ReceiveMsgForClient(Client client)
         {
             while (true)
             {
+
                 try
                 {
+                    await _semaphore.WaitAsync();
+
                     byte[] buffer = new byte[1024];
                     int bytesReceive = client.Socket.Receive(buffer);
                     string mes = Encoding.UTF8.GetString(buffer, 0, bytesReceive);
@@ -87,6 +92,10 @@ namespace WPF_ChatServer
                     {
                         Console.WriteLine(mes);
                         _message.Enqueue(mes);
+
+                        // 向客户端发送确认
+                        byte[] ackMessage = Encoding.UTF8.GetBytes("ACK");
+                        client.Socket.Send(ackMessage);  // 发送确认消息给客户端
                     }
                 }
                 catch (Exception ex)
@@ -94,7 +103,10 @@ namespace WPF_ChatServer
                     Console.WriteLine(ex.ToString());
                     RemoveConnection(client);
                     break;
-
+                }
+                finally
+                {
+                    _semaphore.Release(); // 完成后释放信号量，允许其他任务继续执行
                 }
             }
         }
