@@ -10,7 +10,7 @@ namespace WPF_ChatServer
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             #region 初始化
             // 设置监听的 IP 地址和端口号
@@ -28,7 +28,7 @@ namespace WPF_ChatServer
 
             while (true)
             {
-                Socket ClientSocket = listener.Accept();
+                Socket ClientSocket = await listener.AcceptAsync();
                 messageManager.AddConnection(new Client(ClientSocket));
                 Console.WriteLine("客户端已连接.");
             }

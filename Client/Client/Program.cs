@@ -29,8 +29,10 @@ namespace Client
 
             while (true)
             {
-
+                string input = Console.ReadLine();
+                if (input == "exit") break;
             }
+            clientSocket.Close();
         }
     }
 
@@ -42,6 +44,7 @@ namespace Client
         public MessageManager(Socket socket)
         {
             _socket = socket;
+
             Thread recThread = new Thread(() => ReceiveMsg());
             recThread.IsBackground = true;
             recThread.Start();

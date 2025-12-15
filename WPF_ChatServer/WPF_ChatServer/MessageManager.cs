@@ -9,6 +9,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace WPF_ChatServer
 {
@@ -18,7 +19,7 @@ namespace WPF_ChatServer
         private static readonly Lazy<MessageManager> _instance =
             new Lazy<MessageManager>(() => new MessageManager());
 
-        Queue<string> _message = new Queue<string>();
+        private ConcurrentQueue<string> _message = new ConcurrentQueue<string>();
 
         private List<Client> _client = new List<Client>();
 
@@ -28,13 +29,11 @@ namespace WPF_ChatServer
         {
             try
             {
-                Thread DealMsgThread = new Thread(() => DealMsg());
-                DealMsgThread.IsBackground = true;
-                DealMsgThread.Start();
 
-                Thread ReceiveMsgThread = new Thread(() => ReceiveMsg());
-                ReceiveMsgThread.IsBackground = true;
-                ReceiveMsgThread.Start();
+                Task.Run(() => DealMsg());
+
+
+                Task.Run(() => ReceiveMsg());
             }
             catch (Exception ex)
             {
@@ -43,32 +42,50 @@ namespace WPF_ChatServer
 
         }
 
-        public void DealMsg()
+        public async void DealMsg()
         {
             while (true)
             {
                 if (_message.Count > 0)
                 {
-                    Console.WriteLine("Dealing message");
-                    string mes = _message.Dequeue();
-                    foreach (Client client in _client)
+
+                    string mes;
+                    if (_message.TryDequeue(out mes))
                     {
-                        if (client != null)
+                        List<Client> clientCopy;
+                        lock (_client)
                         {
-                            client.Socket.Send(Encoding.UTF8.GetBytes(mes));
+                            clientCopy = new List<Client>(_client);
+                        }
+                        foreach (Client client in clientCopy)
+                        {
+                            if (client != null)
+                            {
+                                Console.WriteLine("Dealing message");
+                                //异步发送信息，避免阻塞线程
+                                await Task.Run(() => { client.Socket.Send(Encoding.UTF8.GetBytes(mes)); });
+                            }
                         }
                     }
+
                 }
+                await Task.Delay(100);
             }
         }
 
-        public void ReceiveMsg()
+        public async void ReceiveMsg()
         {
             while (true)
             {
                 if (_client.Count > 0)
                 {
-                    foreach (var client in _client)
+                    List<Client> clientCopy;
+                    lock (_client)
+                    {
+                        clientCopy = new List<Client>(_client);
+                    }
+
+                    foreach (var client in clientCopy)
                     {
                         try
                         {
@@ -88,24 +105,31 @@ namespace WPF_ChatServer
                         }
                     }
                 }
+                await Task.Delay(10);
             }
         }
 
         public void AddConnection(Client client)
         {
-            if (!_client.Contains(client))
+            lock (_client)
             {
-                _client.Add(client);
-                Console.WriteLine(client.IpAddress + "Connect");
+                if (!_client.Contains(client))
+                {
+                    _client.Add(client);
+                    Console.WriteLine(client.IpAddress + "Connect");
+                }
             }
         }
 
         public void RemoveConnection(Client client)
         {
-            if (_client.Contains(client))
+            lock (_client)
             {
-                _client.Remove(client);
-                Console.WriteLine(client.IpAddress + client.ConnectTime + "Disconnect");
+                if (_client.Contains(client))
+                {
+                    _client.Remove(client);
+                    Console.WriteLine(client.IpAddress + client.ConnectTime + "Disconnect");
+                }
             }
         }
 
