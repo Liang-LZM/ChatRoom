@@ -13,6 +13,7 @@ namespace Client
     {
         static void Main(string[] args)
         {
+            #region 初始化
             // 连接到服务器的 IP 地址和端口
             string serverIP = "127.0.0.1"; // 本机地址
             int port = 8080;
@@ -26,12 +27,15 @@ namespace Client
             Console.WriteLine("已连接到服务器.");
 
             MessageManager messageManager = new MessageManager(clientSocket);
+            #endregion
+
 
             while (true)
             {
-                string input = Console.ReadLine();
-                if (input == "exit") break;
+
             }
+
+
             clientSocket.Close();
         }
     }
@@ -60,6 +64,7 @@ namespace Client
             {
                 string read = Console.ReadLine();
                 _socket.Send(Encoding.UTF8.GetBytes(read));
+
             }
         }
 
@@ -72,7 +77,14 @@ namespace Client
                 string rec = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                 if (bytesRead != 0)
                 {
-                    Console.WriteLine(rec);
+                    if (rec == "ACK")
+                    {
+                        Console.WriteLine("已发送");
+                    }
+                    else
+                    {
+                        Console.WriteLine("收到：" + rec);
+                    }
                 }
             }
 
