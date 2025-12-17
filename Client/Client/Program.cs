@@ -42,12 +42,24 @@ namespace Client
 
     class MessageManager
     {
+        int Id;
+
+        enum MessageType : byte
+        {
+            Text = 1, //用户信息
+            Join = 2, //用户加入
+            Leave = 3, //用户离开
+            System = 4, //系统消息
+            Heartbeat = 5 //心跳信息
+        }
 
 
         private Socket _socket;
         public MessageManager(Socket socket)
         {
             _socket = socket;
+
+            Id = 114514;
 
             Thread recThread = new Thread(() => ReceiveMsg());
             recThread.IsBackground = true;
@@ -63,8 +75,7 @@ namespace Client
             while (true)
             {
                 string read = Console.ReadLine();
-                _socket.Send(Encoding.UTF8.GetBytes(read));
-
+                _socket.Send(PackMsg((byte)MessageType.Text, Id, 0, read));
             }
         }
 
@@ -72,9 +83,23 @@ namespace Client
         {
             while (true)
             {
+                #region 接受并拆分信息
                 byte[] buffer = new byte[1024];
                 int bytesRead = _socket.Receive(buffer);
-                string rec = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                byte[] mes = new byte[bytesRead];
+                Array.Copy(buffer, 0, mes, 0, bytesRead);
+
+                byte type = mes[0];
+                int sender = BitConverter.ToInt32(mes, 1);
+                int receiver = BitConverter.ToInt32(mes, 5);
+                //Console.WriteLine(type + " " + sender + " " + receiver);
+                byte[] body = new byte[mes.Length - 9];
+                Array.Copy(mes, 9, body, 0, body.Length);
+                #endregion
+
+                string rec = Encoding.UTF8.GetString(mes, 9, bytesRead - 9);
+
+
                 if (bytesRead != 0)
                 {
                     if (rec == "ACK")
@@ -88,6 +113,17 @@ namespace Client
                 }
             }
 
+        }
+
+        public byte[] PackMsg(byte messageType, int sender, int receiver, string body)
+        {
+            byte[] buffer = new byte[9 + body.Length];
+            buffer[0] = messageType;
+            Array.Copy(BitConverter.GetBytes(sender), 0, buffer, 1, 4);
+            Array.Copy(BitConverter.GetBytes(receiver), 0, buffer, 5, 4);
+
+            Array.Copy(Encoding.UTF8.GetBytes(body), 0, buffer, 9, body.Length);
+            return buffer;
         }
     }
 }

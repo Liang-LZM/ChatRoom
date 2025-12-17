@@ -19,13 +19,22 @@ namespace WPF_ChatServer
         private static readonly Lazy<MessageManager> _instance =
             new Lazy<MessageManager>(() => new MessageManager());
 
-        private ConcurrentQueue<string> _message = new ConcurrentQueue<string>();
+        private ConcurrentQueue<byte[]> _message = new ConcurrentQueue<byte[]>();
 
         private List<Client> _client = new List<Client>();
 
         public static MessageManager Instance => _instance.Value;
 
         private SemaphoreSlim _semaphore = new SemaphoreSlim(10, 10); // 限制最多10个并发任务
+
+        enum MessageType : byte
+        {
+            Text = 1, //用户信息
+            Join = 2, //用户加入
+            Leave = 3, //用户离开
+            System = 4, //系统消息
+            Heartbeat = 5 //心跳信息
+        }
 
         private MessageManager()
         {
@@ -44,27 +53,35 @@ namespace WPF_ChatServer
         {
             while (true)
             {
-                if (_message.Count > 0)
+                byte[] mes;
+                if (_message.TryDequeue(out mes))
                 {
-
-                    string mes;
-                    if (_message.TryDequeue(out mes))
+                    List<Client> clientCopy;
+                    lock (_client)
                     {
-                        List<Client> clientCopy;
-                        lock (_client)
+                        clientCopy = new List<Client>(_client);
+                    }
+
+                    #region 解析信息
+                    byte type = mes[0];
+                    int sender = BitConverter.ToInt32(mes, 1);
+                    int receiver = BitConverter.ToInt32(mes, 5);
+                    Console.WriteLine(type + " " + sender + " " + receiver);
+                    byte[] body = new byte[mes.Length - 9];
+                    Array.Copy(mes, 9, body, 0, body.Length);
+                    #endregion
+
+                    foreach (Client client in clientCopy)
+                    {
+                        if (client != null)
                         {
-                            clientCopy = new List<Client>(_client);
-                        }
-                        foreach (Client client in clientCopy)
-                        {
-                            if (client != null)
-                            {
-                                Console.WriteLine("Dealing message");
-                                //异步发送信息，避免阻塞线程
-                                await Task.Run(() => { client.Socket.Send(Encoding.UTF8.GetBytes(mes)); });
-                            }
+                            Console.WriteLine("Dealing message");
+                            //异步发送信息，避免阻塞线程
+                            await Task.Run(() => { client.Socket.Send(mes); });
+                            //await Task.Run(() => { client.Socket.Send(body); });
                         }
                     }
+
 
                 }
                 await Task.Delay(1000);
@@ -84,18 +101,18 @@ namespace WPF_ChatServer
                 try
                 {
                     await _semaphore.WaitAsync();
-
                     byte[] buffer = new byte[1024];
                     int bytesReceive = client.Socket.Receive(buffer);
+                    byte[] input = new byte[bytesReceive];//规范长度
+                    Array.Copy(buffer, 0, input, 0, bytesReceive);
                     string mes = Encoding.UTF8.GetString(buffer, 0, bytesReceive);
                     if (bytesReceive != 0)
                     {
                         Console.WriteLine(mes);
-                        _message.Enqueue(mes);
+                        _message.Enqueue(input);
 
                         // 向客户端发送确认
-                        byte[] ackMessage = Encoding.UTF8.GetBytes("ACK");
-                        client.Socket.Send(ackMessage);  // 发送确认消息给客户端
+                        client.Socket.Send(PackMsg((byte)MessageType.System, 0, 0, "ACK"));
                     }
                 }
                 catch (Exception ex)
@@ -151,6 +168,16 @@ namespace WPF_ChatServer
         public void ChangeAuthenticated(Client client, bool TF)
         {
             client.IsAuthenticated = TF;
+        }
+
+        public byte[] PackMsg(byte messageType, int sender, int receiver, string body)
+        {
+            byte[] buffer = new byte[9 + body.Length];
+            buffer[0] = messageType;
+            Array.Copy(BitConverter.GetBytes(sender), 0, buffer, 1, 4);
+            Array.Copy(BitConverter.GetBytes(receiver), 0, buffer, 5, 4);
+            Array.Copy(Encoding.UTF8.GetBytes(body), 0, buffer, 9, body.Length);
+            return buffer;
         }
 
     }
