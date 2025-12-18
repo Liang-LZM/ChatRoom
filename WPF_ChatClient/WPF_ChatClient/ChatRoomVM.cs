@@ -48,6 +48,7 @@ namespace WPF_ChatClient
         public ChatRoomVM(ChatRoom chatRoom)
         {
             _chatRoom = chatRoom;
+            messageManager.OnMessageReceived += OnMessageReceived;
         }
 
         #region 发送按键
@@ -55,11 +56,9 @@ namespace WPF_ChatClient
         {
             if (ChatRoomM.Write != "")
             {
-
-                //SendMessage(ChatRoomM.Write);
                 messageManager.SendMsg(ChatRoomM.Write, 0);
                 ShowOnScroll(ChatRoomM.Write);
-                _chatRoom.ScrollViewer1.ScrollToEnd();
+
                 ChatRoomM.Write = "";
                 ChatRoomM = ChatRoomM;
             }
@@ -95,6 +94,7 @@ namespace WPF_ChatClient
                 };
 
                 _chatRoom.TextPanel1.Children.Add(newText);
+                _chatRoom.ScrollViewer1.ScrollToEnd();
             }
             else // 如果当前线程不是 UI 线程，通过 Dispatcher 调度到 UI 线程
             {
@@ -114,6 +114,11 @@ namespace WPF_ChatClient
         }
 
         #endregion
+
+        public void OnMessageReceived(string mes)
+        {
+            ShowOnScroll(mes);
+        }
 
     }
 }

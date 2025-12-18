@@ -63,7 +63,7 @@ namespace WPF_ChatClient
 
                 ChatRoom chatRoom = new ChatRoom();
                 chatRoom.Show();
-                MessageBox.Show("11");
+                _mainWindow.Close();
             }
             else
             {

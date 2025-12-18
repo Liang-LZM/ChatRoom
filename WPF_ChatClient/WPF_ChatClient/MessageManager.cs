@@ -43,6 +43,8 @@ namespace WPF_ChatClient
 
         private ConcurrentQueue<byte[]> _message = new ConcurrentQueue<byte[]>();
 
+        public event Action<string> OnMessageReceived;
+
         enum MessageType : byte
         {
             Text = 1, //用户信息
@@ -99,13 +101,14 @@ namespace WPF_ChatClient
                     Console.WriteLine(type + " " + sender + " " + receiver);
                     byte[] body = new byte[mes.Length - 9];
                     Array.Copy(mes, 9, body, 0, body.Length);
+                    string mesbody = Encoding.UTF8.GetString(body, 0, body.Length);
                     #endregion
 
                     switch (type)
                     {
                         case (byte)MessageType.Text:
                             {
-
+                                OnMessageReceived?.Invoke(mesbody);
                                 break;
                             }
                         case (byte)MessageType.Join:
@@ -130,7 +133,6 @@ namespace WPF_ChatClient
                 await Task.Delay(1000);
             }
         }
-
 
         public byte[] PackMsg(byte messageType, int sender, int receiver, string body)
         {
