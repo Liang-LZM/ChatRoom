@@ -19,11 +19,11 @@ namespace WPF_ChatServer
         private static readonly Lazy<MessageManager> _instance =
             new Lazy<MessageManager>(() => new MessageManager());
 
+        public static MessageManager Instance => _instance.Value;
+
         private ConcurrentQueue<byte[]> _message = new ConcurrentQueue<byte[]>();
 
         private List<Client> _client = new List<Client>();
-
-        public static MessageManager Instance => _instance.Value;
 
         private SemaphoreSlim _semaphore = new SemaphoreSlim(10, 10); // 限制最多10个并发任务
 
@@ -71,18 +71,40 @@ namespace WPF_ChatServer
                     Array.Copy(mes, 9, body, 0, body.Length);
                     #endregion
 
-                    foreach (Client client in clientCopy)
+                    switch (type)
                     {
-                        if (client != null)
-                        {
-                            Console.WriteLine("Dealing message");
-                            //异步发送信息，避免阻塞线程
-                            await Task.Run(() => { client.Socket.Send(mes); });
-                            //await Task.Run(() => { client.Socket.Send(body); });
-                        }
+                        case (byte)MessageType.Text:
+                            {
+                                foreach (Client client in clientCopy)
+                                {
+                                    if (client != null)
+                                    {
+                                        Console.WriteLine("Dealing message");
+                                        //异步发送信息，避免阻塞线程
+                                        await Task.Run(() => { client.Socket.Send(mes); });
+                                        //await Task.Run(() => { client.Socket.Send(body); });
+                                    }
+                                }
+                                break;
+                            }
+                        case (byte)MessageType.Join:
+                            {
+                                break;
+                            }
+                        case (byte)MessageType.Leave:
+                            {
+                                break;
+                            }
+                        case (byte)MessageType.Heartbeat:
+                            {
+                                break;
+                            }
+                        case (byte)MessageType.System:
+                            {
+                                break;
+                            }
+
                     }
-
-
                 }
                 await Task.Delay(1000);
             }

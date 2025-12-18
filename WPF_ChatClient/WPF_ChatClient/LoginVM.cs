@@ -8,13 +8,19 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
 using WPF_ChatRoom;
+using System.Net;
 
 namespace WPF_ChatClient
 {
     class LoginVM : INotifyPropertyChanged
     {
         private MainWindow _mainWindow;
-        public LoginVM(MainWindow mainWindow) { _mainWindow = mainWindow; }
+        private MessageManager _messageManager;
+        public LoginVM(MainWindow mainWindow)
+        {
+            _mainWindow = mainWindow;
+            _messageManager = MessageManager.Instance;
+        }
 
         #region 通知到界面的固定代码
         public event PropertyChangedEventHandler PropertyChanged;
@@ -52,13 +58,11 @@ namespace WPF_ChatClient
         {
             if (LoginM.Password != "")
             {
-                string serverIp = "127.0.0.1";
-                int serverPort = 8080;
-                TcpClient client = new TcpClient();
-                client.Connect(serverIp, serverPort);
-
                 //ChatRoom chatRoom = new ChatRoom(LoginM.Name, LoginM.Password, client);
                 //chatRoom.Show();
+
+                ChatRoom chatRoom = new ChatRoom();
+                chatRoom.Show();
                 MessageBox.Show("11");
             }
             else

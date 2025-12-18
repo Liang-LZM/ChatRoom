@@ -22,6 +22,7 @@ namespace WPF_ChatClient
         public ChatRoom()
         {
             InitializeComponent();
+            this.DataContext = new ChatRoomVM(this);
         }
     }
 }
