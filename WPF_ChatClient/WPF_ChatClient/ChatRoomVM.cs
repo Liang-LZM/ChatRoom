@@ -57,6 +57,7 @@ namespace WPF_ChatClient
             {
 
                 //SendMessage(ChatRoomM.Write);
+                messageManager.SendMsg(ChatRoomM.Write, 0);
                 ShowOnScroll(ChatRoomM.Write);
                 _chatRoom.ScrollViewer1.ScrollToEnd();
                 ChatRoomM.Write = "";
