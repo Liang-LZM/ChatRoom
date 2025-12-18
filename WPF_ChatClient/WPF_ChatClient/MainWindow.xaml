@@ -32,7 +32,7 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Text="账号名" FontSize="20" Grid.Row="0" Grid.Column="0"/>
-            <TextBox Text="{Binding LoginM.Name}" Height="20" Width="200" Grid.Row="0" Grid.Column="1"/>
+            <TextBox Text="{Binding LoginM.Id}" Height="20" Width="200" Grid.Row="0" Grid.Column="1"/>
 
             <TextBlock Text="密码" FontSize="20" Grid.Row="1" Grid.Column="0"/>
             <TextBox Text="{Binding LoginM.Password}" Height="20" Width="200" Grid.Row="1" Grid.Column="1"/>

@@ -19,6 +19,7 @@ namespace WPF_ChatClient
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new LoginVM(this);
         }
     }
 }
