@@ -117,12 +117,13 @@ namespace Client
 
         public byte[] PackMsg(byte messageType, int sender, int receiver, string body)
         {
-            byte[] buffer = new byte[9 + body.Length];
+            int bodyCount = Encoding.UTF8.GetByteCount(body);
+            byte[] buffer = new byte[9 + bodyCount];
             buffer[0] = messageType;
             Array.Copy(BitConverter.GetBytes(sender), 0, buffer, 1, 4);
             Array.Copy(BitConverter.GetBytes(receiver), 0, buffer, 5, 4);
 
-            Array.Copy(Encoding.UTF8.GetBytes(body), 0, buffer, 9, body.Length);
+            Array.Copy(Encoding.UTF8.GetBytes(body), 0, buffer, 9, bodyCount);
             return buffer;
         }
     }

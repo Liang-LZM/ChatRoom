@@ -125,13 +125,15 @@ namespace WPF_ChatServer
                     await _semaphore.WaitAsync();
                     byte[] buffer = new byte[1024];
                     int bytesReceive = client.Socket.Receive(buffer);
-                    byte[] input = new byte[bytesReceive];//规范长度
-                    Array.Copy(buffer, 0, input, 0, bytesReceive);
+
+                    //byte[] input = new byte[bytesReceive];//规范长度
+                    //Array.Copy(buffer, 0, input, 0, bytesReceive);
                     string mes = Encoding.UTF8.GetString(buffer, 0, bytesReceive);
                     if (bytesReceive != 0)
                     {
                         Console.WriteLine(mes);
-                        _message.Enqueue(input);
+                        //_message.Enqueue(input);
+                        _message.Enqueue(buffer);
 
                         // 向客户端发送确认
                         client.Socket.Send(PackMsg((byte)MessageType.System, 0, 0, "ACK"));
@@ -194,11 +196,12 @@ namespace WPF_ChatServer
 
         public byte[] PackMsg(byte messageType, int sender, int receiver, string body)
         {
-            byte[] buffer = new byte[9 + body.Length];
+            int bodyCount = Encoding.UTF8.GetByteCount(body);
+            byte[] buffer = new byte[9 + bodyCount];
             buffer[0] = messageType;
             Array.Copy(BitConverter.GetBytes(sender), 0, buffer, 1, 4);
             Array.Copy(BitConverter.GetBytes(receiver), 0, buffer, 5, 4);
-            Array.Copy(Encoding.UTF8.GetBytes(body), 0, buffer, 9, body.Length);
+            Array.Copy(Encoding.UTF8.GetBytes(body), 0, buffer, 9, bodyCount);
             return buffer;
         }
 

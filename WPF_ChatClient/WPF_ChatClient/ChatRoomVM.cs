@@ -48,6 +48,7 @@ namespace WPF_ChatClient
         public ChatRoomVM(ChatRoom chatRoom)
         {
             _chatRoom = chatRoom;
+            //VM里的OMR订阅信息模块的OMR，即VM给信息模块提供了一个按钮，当信息模块的OMR触发，同时触发VM的OMR
             messageManager.OnMessageReceived += OnMessageReceived;
         }
 
