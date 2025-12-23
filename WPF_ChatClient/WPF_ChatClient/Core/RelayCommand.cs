@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace WPF_ChatRoom
+namespace WPF_ChatClient.Core
 {
     internal class RelayCommand : ICommand
     {

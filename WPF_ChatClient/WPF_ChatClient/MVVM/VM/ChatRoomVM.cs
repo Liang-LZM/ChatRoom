@@ -1,0 +1,171 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using WPF_ChatClient.Core;
+using WPF_ChatClient.MVVM.M;
+
+
+namespace WPF_ChatClient.MVVM.VM
+{
+    class ChatRoomVM : INotifyPropertyChanged
+    {
+        #region 通知到界面的固定代码
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void RaisePropertyChanged(string propertyName)//通知到界面
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion
+
+        private MessageManager messageManager = MessageManager.Instance;
+
+        public ObservableCollection<MessageModel> Messages { get; set; }
+
+        public ObservableCollection<ContactModel> Contacts { get; set; }
+
+        ChatRoomM _chatRoomM;
+        public ChatRoomM ChatRoomM
+        {
+            get
+            {
+                if (_chatRoomM == null) { _chatRoomM = new ChatRoomM(); }
+                return _chatRoomM;
+            }
+            set
+            {
+                _chatRoomM = value;
+                RaisePropertyChanged("ChatRoomM");
+            }
+        }
+
+        private ChatRoom _chatRoom;
+
+        public ChatRoomVM(ChatRoom chatRoom)
+        {
+            _chatRoom = chatRoom;
+            //VM里的OMR订阅信息模块的OMR，即VM给信息模块提供了一个按钮，当信息模块的OMR触发，同时触发VM的OMR
+            messageManager.OnMessageReceived += OnMessageReceived;
+
+            Messages = new ObservableCollection<MessageModel>();
+            Contacts = new ObservableCollection<ContactModel>();
+
+            Messages.Add(new MessageModel
+            {
+                Username = "Alex",
+                UsernameColor = "#409aff",
+                ImageSource = "t",
+                Message = "test",
+                Time = DateTime.Now,
+                IsNativeOrigin = false,
+                FirstMessage = true
+            });
+
+            for (int i = 0; i < 3; i++)
+            {
+                Messages.Add(new MessageModel
+                {
+                    Username = "Alex",
+                    UsernameColor = "#409aff",
+                    ImageSource = "t",
+                    Message = "test",
+                    Time = DateTime.Now,
+                    IsNativeOrigin = false,
+                    FirstMessage = true
+                });
+            }
+
+            for (int i = 0; i < 4; i++)
+            {
+                Contacts.Add(new ContactModel
+                {
+                    Username = $"Alex {i}",
+                    Messages = Messages
+                }); ;
+
+            }
+
+        }
+
+        #region 发送按键
+        private void RoomSendMes()//发送信息
+        {
+            if (ChatRoomM.Write != "")
+            {
+                messageManager.SendMsg(ChatRoomM.Write, 0);
+                //ShowOnScroll(ChatRoomM.Write);
+
+                ChatRoomM.Write = "";
+                ChatRoomM = ChatRoomM;
+            }
+            else
+            {
+                MessageBox.Show("信息不能为空");
+            }
+        }
+
+        bool CanSendExecute()
+        {
+            return true;
+        }
+
+        public ICommand RoomSendMesAction
+        {
+            get
+            {
+                return new RelayCommand(RoomSendMes, CanSendExecute);
+            }
+        }
+
+        //将修改通知到UI线程(非UI线程修改UI会报错)
+        //private void ShowOnScroll(string message)
+        //{
+
+        //    if (_chatRoom.TextPanel1.Dispatcher.CheckAccess())// 如果当前线程是 UI 线程，直接更新
+        //    {
+        //        var newText = new TextBlock
+        //        {
+        //            Text = message,
+        //            Margin = new Thickness(5)
+        //        };
+
+        //        _chatRoom.TextPanel1.Children.Add(newText);
+        //        _chatRoom.ScrollViewer1.ScrollToEnd();
+        //    }
+        //    else // 如果当前线程不是 UI 线程，通过 Dispatcher 调度到 UI 线程
+        //    {
+
+        //        _chatRoom.TextPanel1.Dispatcher.Invoke(new Action(() =>
+        //        {
+        //            var newText = new TextBlock
+        //            {
+        //                Text = message,
+        //                Margin = new Thickness(5)
+        //            };
+        //            _chatRoom.TextPanel1.Children.Add(newText);
+        //        }));
+        //    }
+
+
+        //}
+
+        #endregion
+
+        public void OnMessageReceived(string mes)
+        {
+            //ShowOnScroll(mes);
+        }
+
+    }
+}

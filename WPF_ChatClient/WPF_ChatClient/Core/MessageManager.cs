@@ -9,7 +9,7 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
-namespace WPF_ChatClient
+namespace WPF_ChatClient.Core
 {
     class MessageManager
     {

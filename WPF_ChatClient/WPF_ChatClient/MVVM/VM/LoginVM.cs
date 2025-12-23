@@ -7,10 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
-using WPF_ChatRoom;
 using System.Net;
+using WPF_ChatClient.MVVM.M;
+using WPF_ChatClient.Core;
 
-namespace WPF_ChatClient
+namespace WPF_ChatClient.MVVM.VM
 {
     class LoginVM : INotifyPropertyChanged
     {

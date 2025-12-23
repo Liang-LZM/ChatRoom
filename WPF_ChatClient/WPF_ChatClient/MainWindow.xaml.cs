@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WPF_ChatClient.MVVM.VM;
 
 namespace WPF_ChatClient
 {
@@ -19,7 +20,7 @@ namespace WPF_ChatClient
         public MainWindow()
         {
             InitializeComponent();
-            this.DataContext = new LoginVM(this);
+            DataContext = new LoginVM(this);
         }
     }
 }

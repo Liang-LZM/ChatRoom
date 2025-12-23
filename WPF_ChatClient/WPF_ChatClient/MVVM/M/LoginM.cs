@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WPF_ChatClient
+namespace WPF_ChatClient.MVVM.M
 {
     class LoginM
     {
